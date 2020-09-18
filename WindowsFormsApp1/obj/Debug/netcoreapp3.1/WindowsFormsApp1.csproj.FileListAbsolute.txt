@@ -1,0 +1,15 @@
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\bin\Debug\netcoreapp3.1\WindowsFormsApp1.exe
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\bin\Debug\netcoreapp3.1\WindowsFormsApp1.deps.json
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\bin\Debug\netcoreapp3.1\WindowsFormsApp1.runtimeconfig.json
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\bin\Debug\netcoreapp3.1\WindowsFormsApp1.runtimeconfig.dev.json
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\bin\Debug\netcoreapp3.1\WindowsFormsApp1.dll
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\bin\Debug\netcoreapp3.1\WindowsFormsApp1.pdb
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.csprojAssemblyReference.cache
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.Form1.resources
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.csproj.GenerateResource.cache
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.AssemblyInfoInputs.cache
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.AssemblyInfo.cs
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.csproj.CoreCompileInputs.cache
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.dll
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.pdb
+C:\Users\frede\OneDrive\Documentos\TCC\Projeto_windows_forms\NucleiDetector\WindowsFormsApp1\obj\Debug\netcoreapp3.1\WindowsFormsApp1.genruntimeconfig.cache
