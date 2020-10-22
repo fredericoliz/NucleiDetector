@@ -74,15 +74,19 @@ namespace WindowsFormsApp1
                 img = new Image<Hsv, Byte>(imagePath);
                 Camera = new Image<Hsv, Byte>(imagePath);
                 CameraResult = new Image<Hsv, Byte>(imagePath);
+                Image<Rgb, Byte> Cellthresh2 = new Image<Rgb, Byte>(img.Cols, img.Rows);
+                Mat EllipseKernel = new Mat();
                 Matrix<byte> kernel1 = new Matrix<byte>(new Byte[3, 3] { { 1, 1, 1}, { 1, 1, 1}, { 1, 1, 1} });
-                var mask = img[0].MorphologyEx(MorphOp.Open, kernel1, new Point(-1, -1), 1, BorderType.Default, new MCvScalar())
-                    .MorphologyEx(MorphOp.Close, kernel1, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+                var mask = img[0];
                 CvInvoke.Threshold(mask, mask, 50, 255, ThresholdType.Otsu);
+                EllipseKernel = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(5, 5), new Point(-1, -1));
+                CvInvoke.MorphologyEx(mask, mask, MorphOp.Open, EllipseKernel, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+                CvInvoke.MorphologyEx(mask, mask, MorphOp.Close, EllipseKernel, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
                 Mat distanceTransform = new Mat();
                 CvInvoke.DistanceTransform(mask, distanceTransform, null, Emgu.CV.CvEnum.DistType.L2, 5);
                 CvInvoke.Normalize(distanceTransform, distanceTransform, 0, 255, NormType.MinMax);
                 var markers = distanceTransform.ToImage<Gray, byte>()
-                    .ThresholdBinary(new Gray(90), new Gray(255));
+                    .ThresholdBinary(new Gray(100), new Gray(255));
                 CvInvoke.ConnectedComponents(markers, markers);
                 var finalMarkers = markers.Convert<Gray, Int32>();
                 CvInvoke.Watershed(img, finalMarkers);
@@ -100,7 +104,7 @@ namespace WindowsFormsApp1
                 imgH = new Image<Hsv, Byte>(imagePath);
                 var nucleimask = imgH[0];
                 CvInvoke.Threshold(nucleimask, nucleimask, 100, 255, ThresholdType.Binary);
-                CvInvoke.MorphologyEx(nucleimask,nucleimask,MorphOp.Close, kernel1, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+                CvInvoke.MorphologyEx(nucleimask, nucleimask, MorphOp.Close, kernel1, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
 
                 ////////////////////////////////////////
                 // aqui cria o contorno do watershed e separa o nucleo de cada celula encontrada
@@ -118,14 +122,16 @@ namespace WindowsFormsApp1
                     separateCell.SetZero();
                     separateNuclei.SetZero();
                     double area = CvInvoke.ContourArea(contours[i]);
+                    double perimeter = CvInvoke.ArcLength(contours[i], true);
                     //cria a mascara para separar cada célula e seus núcleos
                     //caso o contorno for a area total da foto, ignora
-                    if (area < 500)
+                    if (area < 400)
                     {
                         Background += 1;
+                        
                     }
                     //se a celula for muito grande é uma célula a ser ignorada
-                    else if (area > 4000 || area < 1000) 
+                    else if (area > 4000 || area < 1000 || perimeter > 250 || perimeter < 100)
                     {
                         CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(255, 100, 255));
                         CelulasIgnoradas += 1;
@@ -134,44 +140,98 @@ namespace WindowsFormsApp1
                     //se tudo estiver correto, realiza a análise do núcleo da célula
                     else
                     {
+                        //MessageBox.Show(perimeter.ToString());
                         CvInvoke.DrawContours(maskCell, contours, i, new MCvScalar(255, 255, 255), -1);
                         separateCell = Camera & maskCell;
-                        separateNuclei = separateCell & nucleimask.Convert<Hsv, Byte>();
-                        VectorOfVectorOfPoint Nucleicontours = new VectorOfVectorOfPoint();
-                        Mat Nucleihierarchy = new Mat();
-                        CvInvoke.FindContours(separateNuclei.Convert<Gray, Byte>(), Nucleicontours, Nucleihierarchy, RetrType.Tree, ChainApproxMethod.ChainApproxSimple);
-                        //se encontrar 2 núcleos dentro da célula
-                        if (Nucleicontours.Size == 2)
+                        var teste2 = separateCell[0].GetAverage();
+                        //MessageBox.Show(teste2.ToString());
+                        int foi = 0;
+                        for (int k = 255; k > 50; k--)
                         {
-                            double AreaFirstNuclei = CvInvoke.ContourArea(Nucleicontours[0]);
-                            double AreaSecondNuclei = CvInvoke.ContourArea(Nucleicontours[1]);
-                            //ignora os nucleos gigantes por conta do threshold
-                            if (AreaFirstNuclei > 50 || AreaSecondNuclei > 50) 
+                            Image<Gray, Byte> Cellthresh = new Image<Gray, Byte>(img.Cols, img.Rows);
+                            VectorOfVectorOfPoint Nucleithresh = new VectorOfVectorOfPoint();
+                            Mat NucleihierarchyThresh = new Mat();
+                            Mat bla = new Mat();
+                            MCvScalar teste = new MCvScalar();
+                            Cellthresh = separateCell[0];
+                            Cellthresh2 = separateCell.Convert<Rgb, Byte>();
+                            bla = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(5,5), new Point(-1, -1));
+                            CvInvoke.Threshold(Cellthresh, Cellthresh, k, 255, ThresholdType.Binary);
+                            CvInvoke.MorphologyEx(Cellthresh, Cellthresh, MorphOp.Dilate, bla, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+                            CvInvoke.FindContours(Cellthresh.Convert<Gray, Byte>(), Nucleithresh, NucleihierarchyThresh, RetrType.Tree, ChainApproxMethod.ChainApproxSimple);
+                            if (Nucleithresh.Size > 0 && Nucleithresh.Size < 2)
                             {
-                                CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(255, 100, 255));
-                                CelulasIgnoradas += 1;
+                                for (int j = 0; j < Nucleithresh.Size; j++)
+                                {
+                                    double AreaNucleiThresh = CvInvoke.ContourArea(Nucleithresh[j]);
+                                    if (AreaNucleiThresh < 50 && AreaNucleiThresh > 15)
+                                    {
+                                        
+                                        Image<Rgb, Byte> ImageSave = new Image<Rgb, Byte>(img.Cols, img.Rows);
+                                        foi = 1;
+                                        CelulasNormais++;
+                                        ImageSave = Cellthresh2;
+                                        ImageSave.Save("bla" + k + j + ".bmp");
+                                    }
+                                    else if (AreaNucleiThresh > 40)
+                                    {
+                                        continue;
+                                        //CvInvoke.DrawContours(CameraResult, Nucleithresh, j, new MCvScalar(0, 0, 255));
+                                    }
+                                    if (foi == 1)
+                                    {
+                                        CvInvoke.DrawContours(CameraResult, Nucleithresh, j, new MCvScalar(60, 255, 255));
+                                        CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(60, 255, 255));
+                                    }
+                                }
                             }
-                            //se for muito menor (1/5 do valor) que o primeiro nucleo ou vice versa, é um micronucleo
-                            else if ((AreaFirstNuclei < (AreaSecondNuclei / 2)) || (AreaSecondNuclei < (AreaFirstNuclei / 2)))
+                            if (foi == 1)
                             {
-                                CelulasMicronucleadas += 1;
-                                CvInvoke.DrawContours(CameraResult, Nucleicontours, -1, new MCvScalar(60, 255, 255), -1);
-                                CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(60, 255, 255));
+                                break;
                             }
                         }
-                        //se tiver apenas um núcleo dentro da célula
-                        else if (Nucleicontours.Size == 1)
+                        if (foi == 0)
                         {
-                            CelulasNormais += 1;
-                            CvInvoke.DrawContours(CameraResult, Nucleicontours, -1, new MCvScalar(128, 128, 128), -1);
                             CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(128, 128, 128));
                         }
-                        else
-                        {
-                            CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(0, 0, 255));
-                            CvInvoke.DrawContours(CameraResult, Nucleicontours, -1, new MCvScalar(0, 0, 255),-1);
-                        }
+
+                        //separateNuclei = separateCell & nucleimask.Convert<Hsv, Byte>();
+                        //VectorOfVectorOfPoint Nucleicontours = new VectorOfVectorOfPoint();
+                        //Mat Nucleihierarchy = new Mat();
+                        //CvInvoke.FindContours(separateNuclei.Convert<Gray, Byte>(), Nucleicontours, Nucleihierarchy, RetrType.Tree, ChainApproxMethod.ChainApproxSimple);
+                        ////se encontrar 2 núcleos dentro da célula
+                        //if (Nucleicontours.Size == 2)
+                        //{
+                        //    double AreaFirstNuclei = CvInvoke.ContourArea(Nucleicontours[0]);
+                        //    double AreaSecondNuclei = CvInvoke.ContourArea(Nucleicontours[1]);
+                        //    //ignora os nucleos gigantes por conta do threshold
+                        //    if (AreaFirstNuclei > 50 || AreaSecondNuclei > 50)
+                        //    {
+                        //        CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(255, 100, 255));
+                        //        CelulasIgnoradas += 1;
+                        //    }
+                        //    //se for muito menor (1/5 do valor) que o primeiro nucleo ou vice versa, é um micronucleo
+                        //    else if ((AreaFirstNuclei < (AreaSecondNuclei / 2)) || (AreaSecondNuclei < (AreaFirstNuclei / 2)))
+                        //    {
+                        //        CelulasMicronucleadas += 1;
+                        //        CvInvoke.DrawContours(CameraResult, Nucleicontours, -1, new MCvScalar(60, 255, 255), -1);
+                        //        CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(60, 255, 255));
+                        //    }
+                        //}
+                        ////se tiver apenas um núcleo dentro da célula
+                        //else if (Nucleicontours.Size == 1)
+                        //{
+                        //    CelulasNormais += 1;
+                        //    CvInvoke.DrawContours(CameraResult, Nucleicontours, -1, new MCvScalar(128, 128, 128), -1);
+                        //    CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(128, 128, 128));
+                        //}
+                        //else
+                        //{
+                        //    CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(0, 0, 255));
+                        //    CvInvoke.DrawContours(CameraResult, Nucleicontours, -1, new MCvScalar(0, 0, 255), -1);
+                        //}
                     }
+                    
                 }
                 HealthyCells.Text = "Células Normais: " + CelulasNormais.ToString();
                 MononucleadasCells.Text = "Micronucleadas: " + CelulasMicronucleadas.ToString();
