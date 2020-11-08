@@ -117,6 +117,9 @@ namespace WindowsFormsApp1
             CelulasIgnoradas = 0;
             CelulasTotais = 0;
             Background = 0;
+            int PosicaoThresh2 = 0;
+            int PosicaoNucleo2 = 0;
+
             SimpleBlobDetector param = new SimpleBlobDetector();
             VectorOfKeyPoint keypoint = new VectorOfKeyPoint();
             Camera = new Image<Hsv, Byte>(Caminho);
@@ -127,6 +130,7 @@ namespace WindowsFormsApp1
 
             Image<Gray, Byte> Cellthresh = new Image<Gray, Byte>(Camera.Cols, Camera.Rows);
             Image<Gray, Byte> ThreshSet = new Image<Gray, Byte>(Camera.Cols, Camera.Rows);
+            Image<Gray, Byte> ThreshSet2 = new Image<Gray, Byte>(Camera.Cols, Camera.Rows);
             Image<Rgb, Byte> separateCellRGB = new Image<Rgb, Byte>(Camera.Cols, Camera.Rows);
             Image<Hsv, Byte> separateCell = new Image<Hsv, Byte>(Camera.Cols, Camera.Rows);
             Image<Hsv, Byte> separateNuclei = new Image<Hsv, Byte>(Camera.Cols, Camera.Rows);
@@ -256,16 +260,16 @@ namespace WindowsFormsApp1
                     int OutroNucleo = 0;
                     double AreaOutroNucleo = 0;
                     int PosicaoOutroNucleo = 0;
-                    for (int k = thresh; k > 90; k--)
+                    VectorOfVectorOfPoint Nucleithresh = new VectorOfVectorOfPoint();
+                    for (int k = thresh; k > 95; k--)
                     {
-                        VectorOfVectorOfPoint Nucleithresh = new VectorOfVectorOfPoint();
                         Mat NucleihierarchyThresh = new Mat();
                         Mat MorphStructuring = new Mat();
                         Cellthresh = separateCell[0];
                         MorphStructuring = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(5, 5), new Point(-1, -1));
                         CvInvoke.Threshold(Cellthresh, Cellthresh, k, 255, ThresholdType.Binary);
                         CvInvoke.MorphologyEx(Cellthresh, Cellthresh, MorphOp.Dilate, MorphStructuring, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
-                        CvInvoke.FindContours(Cellthresh.Convert<Gray, Byte>(), Nucleithresh, NucleihierarchyThresh, RetrType.Tree, ChainApproxMethod.ChainApproxSimple);
+                        CvInvoke.FindContours(Cellthresh, Nucleithresh, NucleihierarchyThresh, RetrType.Tree, ChainApproxMethod.ChainApproxSimple);
                         Nucleos = 0;
                         AchouNucleo = 0;
                         AreaNucleo1 = 0;
@@ -280,12 +284,11 @@ namespace WindowsFormsApp1
                                 MaskContourCell.SetZero();
                                 MaskContourNuclei.SetZero();
                                 double AreaNucleiThresh = CvInvoke.ContourArea(Nucleithresh[j]);
+                                double PerimeterNucleiThresh = CvInvoke.ArcLength(Nucleithresh[j], true);
                                 CvInvoke.DrawContours(MaskContourCell, contours, i, new MCvScalar(255, 255, 255));
                                 CvInvoke.DrawContours(MaskContourNuclei, Nucleithresh, j, new MCvScalar(255, 255, 255));
                                 ContourCompare = MaskContourCell & MaskContourNuclei;
                                 int pixel = 0;
-                                int testezinho = 0;
-                                
                                 for (int cols = 0; cols < ContourCompare.Cols; cols++)
                                 {
                                     for (int rows = 0; rows < ContourCompare.Rows; rows++)
@@ -299,13 +302,14 @@ namespace WindowsFormsApp1
                                     break;
                                 }
                              
-                                if (AreaNucleiThresh < 100 && AreaNucleiThresh > 25 && pixel == 0 && AchouNucleo == 0)
+                                if (AreaNucleiThresh < 100 && AreaNucleiThresh > 25 && pixel == 0 && AchouNucleo == 0 && PerimeterNucleiThresh < 31)
                                 {
                                     AchouNucleo = 1;
                                     PosicaoThresh = k;
                                     PosicaoNucleo = j;
                                     ThreshSet = Cellthresh;
                                     AreaNucleo1 = AreaNucleiThresh;
+                                    MessageBox.Show(PerimeterNucleiThresh.ToString());
                                 }
                                 if (AreaNucleiThresh < 25 && pixel == 0 && AchouNucleo == 0 && OutroNucleo == 0)
                                 {
@@ -331,7 +335,7 @@ namespace WindowsFormsApp1
                                 if ((AchouNucleo == 1 && OutroNucleo == 0 && pixel == 0))
                                 {
                                     Nucleos++;
-                                    AreaNucleo2 = AreaNucleo1;
+                                    AreaNucleo2 = AreaNucleiThresh;
                                     if (Nucleos > 1)
                                     {
                                         if (Math.Abs(AreaNucleo1 - AreaNucleo2) > 20)
@@ -358,7 +362,7 @@ namespace WindowsFormsApp1
                     }
                     if (AchouNucleo == 1)
                     {
-                        VectorOfVectorOfPoint Nucleithresh = new VectorOfVectorOfPoint();
+                        
                         Mat NucleihierarchyThresh = new Mat();
                         Mat MorphStructuring = new Mat();
                         Cellthresh = separateCell[0];
@@ -406,15 +410,96 @@ namespace WindowsFormsApp1
                                 CvInvoke.DrawContours(CameraResult, Nucleithresh, PosicaoOutroNucleo, new MCvScalar(255, 128, 0));
                                 CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(255, 128, 0));
                             }
-                            else if (Nucleos == 1 && Normal == 1 && pixel == 0)
+                            else if (Nucleos == 1 && Normal == 1)
                             {
-                                if (check == 0) //checa somente uma vez!
+                                VectorOfVectorOfPoint NucleithreshFinal = new VectorOfVectorOfPoint();
+                                //VERIFICA A PRESENÇA DE OUTRO NUCLEO DENTRO DA CELULA!
+                                for (int k = PosicaoThresh; k > 95; k--)
                                 {
-                                    check = 1;
-                                    CelulasNormais++;
+                                    VectorOfVectorOfPoint Nucleithresh2 = new VectorOfVectorOfPoint();
+                                    int AchouNucleo2 = 0;
+                                    Mat NucleihierarchyThresh2 = new Mat();
+                                    Mat MorphStructuring2 = new Mat();
+                                    Cellthresh = separateCell[0];
+                                    Cellthresh2 = separateCell[0];
+                                    MorphStructuring2 = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(9, 9), new Point(-1, -1));
+                                    CvInvoke.Threshold(Cellthresh, Cellthresh, PosicaoThresh, 255, ThresholdType.Binary);
+                                    //MessageBox.Show(PosicaoThresh.ToString());
+                                    CvInvoke.Threshold(Cellthresh2, Cellthresh2, k, 255, ThresholdType.Binary);
+                                    CvInvoke.MorphologyEx(Cellthresh, Cellthresh, MorphOp.Dilate, MorphStructuring2, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+                                    CvInvoke.MorphologyEx(Cellthresh2, Cellthresh2, MorphOp.Dilate, MorphStructuring, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+                                    CvInvoke.MorphologyEx(Cellthresh2, Cellthresh2, MorphOp.Erode, MorphStructuring, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
+                                    Cellthresh2 = Cellthresh2 - Cellthresh;
+                                    CvInvoke.FindContours(Cellthresh2, Nucleithresh2, NucleihierarchyThresh2, RetrType.Tree, ChainApproxMethod.ChainApproxSimple);
+                                    if (Nucleithresh2.Size > 0 && Nucleithresh2.Size < 10)
+                                    {
+                                        
+                                        for (int z = 0; z < Nucleithresh2.Size; z++)
+                                        {
+                                            ContourCompare.SetZero();
+                                            MaskContourCell.SetZero();
+                                            MaskContourNuclei.SetZero();
+                                            double perimeter2 = CvInvoke.ArcLength(Nucleithresh2[z], true);
+                                            double AreaNucleiThresh2 = CvInvoke.ContourArea(Nucleithresh2[z]);
+                                            CvInvoke.DrawContours(MaskContourCell, contours, i, new MCvScalar(255, 255, 255));
+                                            CvInvoke.DrawContours(MaskContourNuclei, Nucleithresh2, z, new MCvScalar(255, 255, 255));
+                                            ContourCompare = MaskContourCell & MaskContourNuclei;
+                                            int pixel2 = 0;
+
+                                            for (int cols = 0; cols < ContourCompare.Cols; cols++)
+                                            {
+                                                for (int rows = 0; rows < ContourCompare.Rows; rows++)
+                                                {
+                                                    pixel2 += ContourCompare.Data[rows, cols, 0];
+                                                }
+                                            }
+
+                                            if (AreaNucleiThresh2 < 50 && AreaNucleiThresh2 > 30 && pixel2 == 0 && AchouNucleo2 == 0 && perimeter2 < 27)
+                                            {
+                                                AchouNucleo2 = 1;
+                                                PosicaoThresh2 = k;
+                                                PosicaoNucleo2 = z;
+                                                //MessageBox.Show(perimeter2.ToString());
+                                                ThreshSet2 = Cellthresh;
+                                                NucleithreshFinal = Nucleithresh2;
+                                                AreaNucleo2 = AreaNucleiThresh2;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (AchouNucleo2 == 1)
+                                    {
+                                        Nucleos++;
+                                        Binucleada = 1;
+                                        Normal = 0;
+                                        break;
+                                    }
                                 }
-                                CvInvoke.DrawContours(CameraResult, Nucleithresh, j, new MCvScalar(0, 255, 0));
-                                CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(0, 255, 0));
+
+                                if (Normal == 1)
+                                {
+                                    if (check == 0) //checa somente uma vez!
+                                    {
+                                        check = 1;
+                                        CelulasNormais++;
+                                    }
+                                    CvInvoke.DrawContours(CameraResult, Nucleithresh, j, new MCvScalar(0, 255, 0));
+                                    CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(0, 255, 0));
+                                    break;
+                                }
+                                else if (Binucleada == 1)
+                                {
+                                    if (check == 0) //checa somente uma vez!
+                                    {
+                                        check = 1;
+                                        CelulasBinucleadas++;
+                                    }
+                                    CvInvoke.DrawContours(CameraResult, Nucleithresh, PosicaoNucleo, new MCvScalar(255, 0, 0));
+                                    CvInvoke.DrawContours(CameraResult, NucleithreshFinal, PosicaoNucleo2, new MCvScalar(255, 0, 0));
+                                    CvInvoke.DrawContours(CameraResult, contours, i, new MCvScalar(255, 0, 0));
+                                    break;
+                                }
+                                    
                             }
                         }
                     }
