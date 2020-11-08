@@ -38,6 +38,10 @@
       "frameworks": {
         "netcoreapp3.1": {
           "dependencies": {
+            "CsvHelper": {
+              "target": "Package",
+              "version": "[15.0.9, )"
+            },
             "Emgu.CV": {
               "target": "Package",
               "version": "[4.4.0.4099, )"

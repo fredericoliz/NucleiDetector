@@ -1,12 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "fPmU8d1Y0zYG1YCKD7ksF/TmqpxLaEC1CoUyZQV7ZmETZZN/THTaexWHKBCt11ZQdn/q7hqk4R7kzng3eEMOTA==",
+  "dgSpecHash": "DSc0sTZGh39a1zqx/7m+Wl/xISL3rE0Jdl22H0kqCrli4LldhXSHnJhOOl2dV7zWKm5dt/RAH7G6wXU/qO9AFg==",
   "success": true,
   "projectFilePath": "C:\\Users\\frede\\OneDrive\\Documentos\\TCC\\NucleiDetector\\WindowsFormsApp1\\NucleiDetector.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\frede\\.nuget\\packages\\csvhelper\\15.0.9\\csvhelper.15.0.9.nupkg.sha512",
     "C:\\Users\\frede\\.nuget\\packages\\emgu.cv\\4.4.0.4099\\emgu.cv.4.4.0.4099.nupkg.sha512",
     "C:\\Users\\frede\\.nuget\\packages\\emgu.cv.bitmap\\4.4.0.4099\\emgu.cv.bitmap.4.4.0.4099.nupkg.sha512",
     "C:\\Users\\frede\\.nuget\\packages\\emgu.cv.runtime.windows\\4.4.0.4099\\emgu.cv.runtime.windows.4.4.0.4099.nupkg.sha512",
+    "C:\\Users\\frede\\.nuget\\packages\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",
     "C:\\Users\\frede\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",
     "C:\\Users\\frede\\.nuget\\packages\\microsoft.netcore.targets\\1.1.3\\microsoft.netcore.targets.1.1.3.nupkg.sha512",
     "C:\\Users\\frede\\.nuget\\packages\\microsoft.win32.systemevents\\4.7.0\\microsoft.win32.systemevents.4.7.0.nupkg.sha512",
