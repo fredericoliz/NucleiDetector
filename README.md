@@ -1,2 +1,2 @@
 # NucleiDetector
-Nuclei Cell Detector
+Tool that inspects cells and its anomalies.
