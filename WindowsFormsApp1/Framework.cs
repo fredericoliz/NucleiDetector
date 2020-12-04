@@ -215,8 +215,8 @@ namespace WindowsFormsApp1
                 {
                     CvInvoke.DrawContours(maskCell, contours, i, new MCvScalar(255, 255, 255), -1);
                     separateCell = Camera & maskCell;
-                    //ImageSave = separateCell.Convert<Gray,Byte>();
-                    //ImageSave.Save("met_mascaracelula.png");
+                    ImageSave = separateCell[0].Convert<Gray,Byte>();
+                    ImageSave.Save("met_mascaracelula.png");
                     var teste2 = separateCell.Convert<Gray, Byte>();
                     Double intensity = 0.0;
                     double pixelintensity = 0;
